@@ -6,4 +6,6 @@ Implemented as a 'service' with the intent to discover [Elm](http://elm-lang.org
 
 To make: `elm make maxims.elm --output=index.html`
 
-Demo pending
+How to: use left/right arrows to navigate maxims. Next maxim is also displayed on clicks and every 30 seconds.
+
+[Demo](http://makemeunsee.github.io/elm-maxims/)
