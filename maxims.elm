@@ -21,6 +21,9 @@ o      o      o
 
 """
 
+period = 30
+freq = 1/period
+
 
 main : Signal Element
 main =
@@ -29,13 +32,22 @@ main =
 
 -- Signals
 
+-- signals -1 or 1 on left or right arrow presses
 arrows =
   Signal.map .x Keyboard.arrows
--- signals 1 on each click and each right arrow pressed and every 30 seconds
-scheduled =
-  Signal.map (always 1) (every (30 * second))
+-- signals 1 on clicks
 clicks =
   Signal.map (always 1) Mouse.clicks
+-- signals true if a user input occurred recently
+freshInput =
+  Signal.merge arrows clicks
+    |> since (period * second)
+-- signals 1 regularly if there were no recent user input
+scheduled =
+  Signal.map not freshInput
+    |> fpsWhen freq
+    |> Signal.map (always 1)
+-- signals the current position
 position =
   Signal.mergeMany [arrows, clicks, scheduled]
     |> Signal.foldp (+) 0
