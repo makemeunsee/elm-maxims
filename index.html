@@ -8901,14 +8901,19 @@ Elm.Main.make = function (_elm) {
       return A2($Text.height,60,$Text.monospace($Text.bold(e)));
    };
    var clicks = A2($Signal.map,$Basics.always(1),$Mouse.clicks);
-   var scheduled = A2($Signal.map,
-   $Basics.always(1),
-   $Time.every(30 * $Time.second));
    var arrows = A2($Signal.map,
    function (_) {
       return _.x;
    },
    $Keyboard.arrows);
+   var period = 30;
+   var freq = 1 / period;
+   var freshInput = A2($Time.since,
+   period * $Time.second,
+   A2($Signal.merge,arrows,clicks));
+   var scheduled = A2($Signal.map,
+   $Basics.always(1),
+   A2($Time.fpsWhen,freq,A2($Signal.map,$Basics.not,freshInput)));
    var position = A3($Signal.foldp,
    F2(function (x,y) {    return x + y;}),
    0,
@@ -9042,10 +9047,13 @@ Elm.Main.make = function (_elm) {
                              ,details: details
                              ,size: size
                              ,sepStr: sepStr
+                             ,period: period
+                             ,freq: freq
                              ,main: main
                              ,arrows: arrows
-                             ,scheduled: scheduled
                              ,clicks: clicks
+                             ,freshInput: freshInput
+                             ,scheduled: scheduled
                              ,position: position
                              ,view: view
                              ,getText: getText
