@@ -26,7 +26,7 @@ o      o      o
 defaultSize = Size 1 1
 
 
-countdownInit = 30
+countdownInit = 15
 
 
 type alias Model =
@@ -72,14 +72,13 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     ScreenResize size -> { model | size = size }
-    Next -> update (Jump 1) model
     Jump x -> { model | maximId = model.maximId + x, countdown = countdownInit }
-    Prev -> { model | maximId = model.maximId + size - 1, countdown = countdownInit }
+    Next -> update (Jump 1) model
+    Prev -> update (Jump (size - 1)) model
     Tick ->
-      if model.countdown <= 1 then
-        { model | maximId = model.maximId + 1, countdown = countdownInit }
-      else
-        { model | countdown = model.countdown - 1 }
+      case model.countdown <= 1 of
+        True -> update (Jump 1) model
+        False -> { model | countdown = model.countdown - 1 }
 
 
 -- SUBSCRIPTIONS
