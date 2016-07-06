@@ -35,13 +35,16 @@ type alias Model =
     , countdown : Int
     }
 
-
 type Msg
     = ScreenResize Size
     | Tick
-    | Next
     | Jump Int
-    | Prev
+
+
+-- useful jumps
+noJump = Jump 0
+next = Jump 1
+prev = Jump (size - 1)
 
 
 main =
@@ -65,7 +68,7 @@ initialSizeCmd =
 
 initialRndJump : Cmd Msg
 initialRndJump =
-  Task.perform (\_ -> Jump 0) (\t -> Jump (round (Time.inMilliseconds t) % size)) Time.now
+  Task.perform (\_ -> noJump) (\t -> Jump (round (Time.inMilliseconds t) % size)) Time.now
 
 
 update : Msg -> Model -> Model
@@ -73,11 +76,9 @@ update msg model =
   case msg of
     ScreenResize size -> { model | size = size }
     Jump x -> { model | maximId = model.maximId + x, countdown = countdownInit }
-    Next -> update (Jump 1) model
-    Prev -> update (Jump (size - 1)) model
     Tick ->
       case model.countdown <= 1 of
-        True -> update (Jump 1) model
+        True -> update next model
         False -> { model | countdown = model.countdown - 1 }
 
 
@@ -87,7 +88,7 @@ update msg model =
 subscriptions: Model -> Sub Msg
 subscriptions _ =
   Sub.batch [ Window.resizes ScreenResize          -- catches viewport resizes
-            , Mouse.clicks (always Next)
+            , Mouse.clicks (always next)
             , Keyboard.downs handleKey
             , Time.every Time.second (always Tick)
             ]
@@ -95,10 +96,10 @@ subscriptions _ =
 
 handleKey key =
   case key of
-    37 -> Prev -- left arrow
-    39 -> Next -- right arrow
-    32 -> Next -- space
-    _ -> Jump 0 -- anything else
+    37 -> prev -- left arrow
+    39 -> next -- right arrow
+    32 -> next -- space
+    _ -> noJump -- anything else
 
 
 -- View building
